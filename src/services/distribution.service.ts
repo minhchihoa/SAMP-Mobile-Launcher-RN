@@ -4,8 +4,10 @@ import { CacheType } from '../actions/loaderActions';
 
 export const DistributionService = {
   async get() {
+    // Add timestamp to prevent caching
+    const url = `${URL_DISTRIBUTION}?t=${new Date().getTime()}`;
     const response = await axios
-      .get<DistributionResponseType>(URL_DISTRIBUTION)
+      .get<DistributionResponseType>(url)
       .then(res => res.data);
     return response;
   },

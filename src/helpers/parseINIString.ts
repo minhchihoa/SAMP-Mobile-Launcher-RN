@@ -34,8 +34,6 @@ export const parseINIString = (data: string): ParsedINI => {
         section = match[1];
         value[section] = {} as Record<string, string>;
       }
-    } else if (!line.length && section) {
-      section = null;
     }
   });
 

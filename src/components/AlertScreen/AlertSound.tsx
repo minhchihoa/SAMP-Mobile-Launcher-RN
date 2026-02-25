@@ -25,15 +25,15 @@ export const AlertSound = React.memo(() => {
   return (
     <AlertLauncher
       show={show}
-      title="Подсказка"
+      title="Gợi ý"
       useNativeDriver={true}
       closeOnTouchOutside={false}
       closeOnHardwareBackPress={false}
-      message="Нет прав на микрофон"
+      message="Không có quyền truy cập micro"
       showConfirmButton={true}
-      confirmText="Настройки"
+      confirmText="Cài đặt"
       showCancelButton={true}
-      cancelText="Закрыть"
+      cancelText="Đóng"
       onConfirmPressed={onPressCancel}
       onCancelPressed={onConfirmPressed}
     />

@@ -1,11 +1,13 @@
-export const substringStr = (str: string, legth: number) => {
+export const substringStr = (str: string | any, legth: number) => {
   if (!str) {
     return '';
   }
+  
+  const stringValue = String(str);
 
-  if (str.length > legth) {
-    return str.substring(0, legth - 3) + '...';
+  if (stringValue.length > legth) {
+    return stringValue.substring(0, legth - 3) + '...';
   }
 
-  return str;
+  return stringValue;
 };

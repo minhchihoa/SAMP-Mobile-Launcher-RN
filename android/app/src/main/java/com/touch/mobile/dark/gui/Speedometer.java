@@ -34,38 +34,65 @@ public class Speedometer {
         mSpeedLine = activity.findViewById(R.id.speed_line);
         mEngine = activity.findViewById(R.id.speed_engine_ico);
         mLock = activity.findViewById(R.id.speed_lock_ico);
-        Utils.HideLayout(relativeLayout, false);
+        // Utils.HideLayout(relativeLayout, false);
+        loadConfig();
+    }
+
+    private void loadConfig() {
+        try {
+            java.io.InputStream is = activity.getAssets().open("data/command_buttons.json");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            String json = new String(buffer, "UTF-8");
+            org.json.JSONArray array = new org.json.JSONArray(json);
+
+            for (int i = 0; i < array.length(); i++) {
+                org.json.JSONObject obj = array.getJSONObject(i);
+                if (obj.has("view_id")) {
+                    String viewIdStr = obj.getString("view_id");
+                    String command = obj.optString("command");
+                    boolean enable = obj.optBoolean("enable", true);
+
+                    if (viewIdStr.equals("speed_engine_ico") && mEngine != null) {
+                        mEngine.setVisibility(enable ? android.view.View.VISIBLE : android.view.View.GONE);
+                        // Force command to /car engine to ensure correct behavior
+                        String finalCommand = "/car engine";
+                        if (enable) {
+                            mEngine.setOnClickListener(v -> {
+                                try {
+                                    // Add null terminator to prevent JNI string corruption (garbage at end)
+                                    String cmdToSend = finalCommand + "\u0000";
+                                    com.nvidia.devtech.NvEventQueueActivity.getInstance().sendCommand(cmdToSend.getBytes("windows-1251"));
+                                } catch (Exception e) {}
+                            });
+                        }
+                    } else if (viewIdStr.equals("speed_lock_ico") && mLock != null) {
+                        mLock.setVisibility(enable ? android.view.View.VISIBLE : android.view.View.GONE);
+                        if (enable && !command.isEmpty()) {
+                            mLock.setOnClickListener(v -> {
+                                try {
+                                    String cmdToSend = command + "\u0000";
+                                    com.nvidia.devtech.NvEventQueueActivity.getInstance().sendCommand(cmdToSend.getBytes("windows-1251"));
+                                } catch (Exception e) {}
+                            });
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void UpdateSpeedInfo(int speed, int fuel, int hp, int mileage, int engine, int light, int belt, int lock){
-        hp= (int) hp/10;
-        mFuel.setText(new Formatter().format("%d", Integer.valueOf(fuel)).toString());
-        mMileage.setText(new Formatter().format("%06d", Integer.valueOf(mileage)).toString());
-        mCarHP.setText(new Formatter().format("%d%s", Integer.valueOf(hp), "%").toString());
-        mSpeedLine.setProgress(speed);
-        mSpeed.setText(String.valueOf(speed));
- 
-        if(speed <= 80) {
-            mSpeedLine.setProgressColor(Color.parseColor("#94C57B"));
-        }
-        else if(speed > 80 && speed <= 150) {
-            mSpeedLine.setProgressColor(Color.parseColor("#f9c750"));
-        } else if(speed > 150) {
-            mSpeedLine.setProgressColor(Color.parseColor("#f36055"));
-        }
-
-        if(engine == 1)
-            mEngine.setColorFilter(Color.parseColor("#9beb9b"), PorterDuff.Mode.SRC_IN);
-        else
-            mEngine.setColorFilter(Color.parseColor("#ff6d55"), PorterDuff.Mode.SRC_IN);
-        if(lock == 1)
-            mLock.setColorFilter(Color.parseColor("#9beb9b"), PorterDuff.Mode.SRC_IN);
-        else
-            mLock.setColorFilter(Color.parseColor("#ff6d55"), PorterDuff.Mode.SRC_IN);
+        // Speedometer disabled
     }
 
     public void ShowSpeed() {
         Utils.ShowLayout(mInputLayout, false);
+        // Utils.HideLayout(mInputLayout, false);
     }
 
     public void HideSpeed() {

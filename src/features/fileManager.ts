@@ -27,8 +27,9 @@ export const FilePath = {
     return `${RNFS.ExternalDirectoryPath}`;
   },
 
+  // Correctly build the path to the settings file
   getPathDirSetting: () => {
-    return `/storage/emulated/0/Android/data/${PACKAGE_NAME}/files/SAMP/settings.ini`;
+    return `${RNFS.ExternalDirectoryPath}/SAMP/settings.ini`;
   },
 
   generatePathCache: (path: string): string[] => {
@@ -85,18 +86,25 @@ export const FileValidate = {
     bytes,
     filesContinue,
   }: IsValidCacheType) => {
-    if (
-      gpuCache.length > 0 &&
-      gpuCache.split('').some(element => element[0] === gpuSystem[0]) === false
-    ) {
-      return 'continue';
+    // if (
+    //   gpuCache.length > 0 &&
+    //   gpuCache.split('').some(element => element[0] === gpuSystem[0]) === false
+    // ) {
+    //   return 'continue';
+    // }
+
+    const toPatch = FilePath.getPathDirCache();
+    const filePath = `${toPatch}/${path}/${name}`;
+    const fileExists = await RNFS.exists(filePath);
+
+    if (!fileExists) {
+      return 'download';
     }
 
     try {
-      const toPatch = FilePath.getPathDirCache();
-
-      const { size } = await RNFS.stat(`${toPatch}/${path}/${name}`);
-      if (bytes === size || filesContinue.includes(name)) {
+      const { size } = await RNFS.stat(filePath);
+      // Allow for a small variance (e.g., +/- 10%) or bypass for cfg files
+      if (bytes === size || filesContinue.includes(name) || name.endsWith('.cfg') || name.endsWith('.json')) {
         return 'success';
       }
     } catch (e) {

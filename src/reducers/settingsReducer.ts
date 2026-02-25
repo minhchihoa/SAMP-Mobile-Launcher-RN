@@ -6,7 +6,6 @@ export const settingInitState = {
   fpsLimit: 60,
   pageSize: 5,
   graphic: 0,
-  voice: 0,
   fpscounter: 0,
   androidKeyboard: 0,
   localhost: 0,

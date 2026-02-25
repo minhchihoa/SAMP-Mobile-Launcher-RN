@@ -8,13 +8,14 @@ import {
   FilePath,
   FileValidate,
 } from '../features/fileManager';
+import { compareVersions } from '../helpers';
 import { navigationRef } from '../routers/RootNavigation';
 import { AppThunk } from '../store/store';
 
 const toPatch = FilePath.getPathDirLauncher();
 
-export const installLauncher = (): AppThunk => async (_, state) => {
-  const { name } = state().distribution.launcher;
+export const installLauncher = (): AppThunk => async (_, getState) => {
+  const { name } = getState().distribution.launcher;
 
   try {
     await RNApkInstaller.install(`${toPatch}/${name}`);
@@ -29,9 +30,9 @@ export type UpdateLauncherType = {
 };
 export const updateLauncher =
   (props: UpdateLauncherType): AppThunk =>
-  async (dispatch, state) => {
-    const launcher = state().distribution.launcher;
-    const cdnLauncher = state().distribution.cdnLauncher;
+  async (dispatch, getState) => {
+    const launcher = getState().distribution.launcher;
+    const cdnLauncher = getState().distribution.cdnLauncher;
 
     dispatch(
       setDownloadLoader({
@@ -67,12 +68,15 @@ export const updateLauncher =
     }
   };
 
-export const autoUpdateLauncher = (): AppThunk => async (_, state) => {
-  const appDistributionVersion = state().distribution.launcher.appVersion;
+export const autoUpdateLauncher = (): AppThunk => async (dispatch, getState) => {
+  const appDistributionVersion = getState().distribution.launcher.appVersion;
+  const compareResult = compareVersions(appDistributionVersion, APP_VERSION);
 
-  if (appDistributionVersion > APP_VERSION) {
-    const appDistributionName = state().distribution.launcher.name;
-    const appDistributionHash = state().distribution.launcher.hash;
+  console.log(`--- UPDATE CHECK --- Server: ${appDistributionVersion}, App: ${APP_VERSION}, Result: ${compareResult}`);
+
+  if (compareResult > 0) {
+    const appDistributionName = getState().distribution.launcher.name;
+    const appDistributionHash = getState().distribution.launcher.hash;
 
     try {
       const pathDownloadFile = `${toPatch}/${appDistributionName}`;
@@ -87,12 +91,32 @@ export const autoUpdateLauncher = (): AppThunk => async (_, state) => {
           StackActions.replace('LauncherUpdateScreen'),
         );
       } else {
+        const cdnLauncher = getState().distribution.cdnLauncher;
+        const downloadUrl = `${cdnLauncher}/${appDistributionName}`;
         return navigationRef.current?.dispatch(
-          StackActions.replace('LauncherDownloadScreen'),
+          StackActions.replace('LauncherDownloadScreen', { downloadUrl }),
         );
       }
     } catch (e) {}
+  } else {
+    const { rejectCount, successCount } = getState().loader.compare;
+    const { isSuccessDownload } = getState().loader;
+
+    console.log(`--- LAUNCHER DEBUG --- Reject count: ${rejectCount}, Success count: ${successCount}, Was download successful before: ${isSuccessDownload}`);
+
+    if (rejectCount > 0) {
+      if (isSuccessDownload) {
+        return navigationRef.current?.dispatch(
+          StackActions.replace('UpdateStartScreen'),
+        );
+      } else {
+        return navigationRef.current?.dispatch(
+          StackActions.replace('DownloadStartScreen'),
+        );
+      }
+    }
   }
 
+  console.log('--- LAUNCHER DEBUG --- No files to download. Navigating to Main.');
   return navigationRef.current?.dispatch(StackActions.replace('Main'));
 };

@@ -54,6 +54,20 @@ public class Notification {
     }
 
     public void ShowNotification (int type, String text, int duration, String actionforBtn, String textBtn) {
+        if (text != null) {
+            String cleanText = text.replaceAll("\\{[A-Fa-f0-9]{6}\\}", "");
+            if (cleanText.startsWith("CREDITS:")) {
+                try {
+                    String val = cleanText.substring(8).trim();
+                    int credits = Integer.parseInt(val);
+                    NvEventQueueActivity.getInstance().setCredits(credits);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
         Utils.HideLayout(constraintLayout, false);
         clearData();
 

@@ -16,12 +16,12 @@ export const LauncherUpdateScreen = React.memo(() => {
   return (
     <LoaderContainer>
       <Text style={[styles.title, styles.titleUppercase]}>
-        Обновление лаунчера
+        Cập nhật launcher
       </Text>
       <Text style={styles.alert}>
-        Нажмите
-        <Text style={styles.accent}> обновить</Text>, чтобы подтвердить
-        {'\n'} обновление лаунчера.
+        Nhấn
+        <Text style={styles.accent}> cập nhật</Text>, để xác nhận
+        {'\n'} cập nhật launcher.
       </Text>
       <View style={styles.buttons}>
         <ButtonLauncher
@@ -29,7 +29,7 @@ export const LauncherUpdateScreen = React.memo(() => {
           btnWidth={'100%'}
           IconLeft={InstallSvg}
           onPress={installHandler}>
-          Обновить
+          Cập nhật
         </ButtonLauncher>
       </View>
     </LoaderContainer>

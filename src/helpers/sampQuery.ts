@@ -1,5 +1,6 @@
 import { Buffer } from 'buffer';
 import dgram from 'react-native-udp';
+import axios from 'axios';
 
 type QueryType = {
   host: string;
@@ -17,20 +18,40 @@ export type QueryTypeResponse = {
   mapname: string;
 };
 
+const resolveHost = async (host: string): Promise<string> => {
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+    return host;
+  }
+  try {
+    const response = await axios.get(`https://dns.google/resolve?name=${host}&type=A`);
+    if (response.data && response.data.Answer) {
+      for (const answer of response.data.Answer) {
+        if (answer.type === 1) {
+          return answer.data;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('DNS resolution failed', e);
+  }
+  return host;
+};
+
 export const getServerQuery = async (
   options: QueryType,
 ): Promise<QueryTypeResponse> => {
   const { host, port = 7777, opcode = 'i', timeout = 1000 } = options;
+  const ip = await resolveHost(host);
 
   return new Promise((resolve, reject) => {
     const socket = dgram.createSocket({ type: 'udp4' });
     let packet = Buffer.alloc(10 + opcode.length);
 
     packet.write('SAMP');
-    packet[4] = host.split('.')[0] as unknown as number;
-    packet[5] = host.split('.')[1] as unknown as number;
-    packet[6] = host.split('.')[2] as unknown as number;
-    packet[7] = host.split('.')[3] as unknown as number;
+    packet[4] = ip.split('.')[0] as unknown as number;
+    packet[5] = ip.split('.')[1] as unknown as number;
+    packet[6] = ip.split('.')[2] as unknown as number;
+    packet[7] = ip.split('.')[3] as unknown as number;
     packet[8] = port & 0xff;
     packet[9] = (port >> 8) & 0xff;
     packet[10] = opcode.charCodeAt(0);
@@ -42,7 +63,7 @@ export const getServerQuery = async (
 
     try {
       socket.bind(() => {
-        socket.send(packet, 0, packet.length, port, host, error => {
+        socket.send(packet, 0, packet.length, port, ip, error => {
           if (error) {
             socket.close();
             return reject(undefined);

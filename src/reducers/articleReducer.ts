@@ -8,12 +8,16 @@ const articleInitState = {
 export type ArticleStateType = typeof articleInitState;
 
 export const articleReducer = (
-  state = articleInitState,
+  state: ArticleStateType = articleInitState,
   action: ArticleActionsType,
 ): ArticleStateType => {
   switch (action.type) {
     case 'SET_ARTICLES':
-      return { ...state, ...action.payload };
+      return {
+        ...state,
+        articles: action.payload.articles ?? [],
+      };
+
     default:
       return state;
   }

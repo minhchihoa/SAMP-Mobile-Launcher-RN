@@ -25,6 +25,7 @@ import { UpdateScreen } from '../screens/LoaderScreen/UpdateScreen';
 import { UpdateStartScreen } from '../screens/LoaderScreen/UpdateStartScreen';
 import { ModeScreen } from '../screens/ModeScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { NewsScreen } from '../screens/NewsScreen';
 import * as Icons from './../assets/svg';
 import { navigationRef } from './RootNavigation';
 
@@ -53,7 +54,7 @@ export const NavigationRouter = React.memo(() => {
   }, []);
 
   if (!isLoading) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -109,7 +110,7 @@ const Tabs = AnimatedTabBarNavigator();
 export const TabBarNavigation = React.memo(() => {
   return (
     <Tabs.Navigator
-      initialRouteName="Играть"
+      initialRouteName="Chơi"
       backBehavior={'initialRoute'}
       tabBarOptions={{
         activeTintColor: '#ffffff',
@@ -120,22 +121,22 @@ export const TabBarNavigation = React.memo(() => {
         shadow: false,
         floating: true,
         dotSize: DotSize.MEDIUM,
-        tabBarBackground: '#212231',
+        tabBarBackground: '#121212',
       }}>
       <Tabs.Screen
-        name="Донат"
-        component={DonateScreen}
+        name="Tin tức"
+        component={NewsScreen}
         options={{
           headerShown: true,
           animation: 'fade',
           headerTransparent: true,
           tabBarIcon: ({ color, size }: any) => (
-            <Icons.WalletSvg width={size} height={size} fill={color} />
+            <Icons.UnionSvg width={size} height={size} fill={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="Играть"
+        name="Chơi"
         component={GameScreen}
         options={{
           headerShown: true,
@@ -147,7 +148,7 @@ export const TabBarNavigation = React.memo(() => {
         }}
       />
       <Tabs.Screen
-        name="Настройки"
+        name="Cài đặt"
         component={SettingsScreen}
         options={{
           headerShown: true,

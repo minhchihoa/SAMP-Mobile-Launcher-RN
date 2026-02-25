@@ -83,6 +83,19 @@ public class Dialog {
     }
 
     public void show(int dialogId, int dialogTypeId, String caption, String content, String leftBtnText, String rightBtnText) {
+        if (content != null) {
+            String cleanContent = content.replaceAll("\\{[A-Fa-f0-9]{6}\\}", "");
+            if (cleanContent.startsWith("CREDITS:")) {
+                try {
+                    String val = cleanContent.substring(8).trim();
+                    int credits = Integer.parseInt(val);
+                    NvEventQueueActivity.getInstance().setCredits(credits);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
         clearDialogData();
         this.mCurrentDialogId = dialogId;
         this.mCurrentDialogTypeId = dialogTypeId;

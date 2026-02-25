@@ -7,8 +7,11 @@ export const selectIsSuccessDownload = (state: AppStoreType) =>
   state.loader.isSuccessDownload;
 
 export const selectCompare = (state: AppStoreType) => state.loader.compare;
+
+// Corrected the typo from 'downalod' to 'download'
 export const selectLoaderDownload = (state: AppStoreType) =>
-  state.loader.downalod;
+  state.loader.download;
+
 export const selectFreeSpace = (state: AppStoreType) => state.loader.freeSpace;
 
 export const selectBytes = (state: AppStoreType) => ({

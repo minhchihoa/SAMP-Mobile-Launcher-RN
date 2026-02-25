@@ -1,5 +1,5 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Lottie from 'lottie-react-native';
+import LottieView from 'lottie-react-native';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -40,45 +40,47 @@ export const MonitoringItem = React.memo(
       <TouchableOpacity onPress={selectServerHandler} style={styles.body}>
         <LinearGradient
           start={{ x: 0.0, y: 0.0 }}
-          colors={['#414673c9', '#262839']}
+          end={{ x: 1.0, y: 1.0 }}
+          colors={['#2c2c2c', '#000000']}
           style={styles.item}>
           <View style={styles.content}>
             <View style={styles.anims}>
-              <Lottie
-                style={styles.anim}
-                resizeMode="cover"
-                source={AnimsList[props.id]}
+              <LottieView
+                source={AnimsList[props.id] ?? Anims.Rocket}
                 autoPlay
                 loop
+                style={styles.anim}
               />
             </View>
             <View style={styles.info}>
               <Text style={styles.subtitle}>{props.name}</Text>
               <View style={styles.static}>
                 {props.loading && (
-                  <ActivityIndicator size="small" color="#719ff0" />
+                  <ActivityIndicator size="small" color="#FFD700" />
                 )}
                 {!props.loading && props.status && (
                   <>
                     <PeopleSvg
                       style={{ marginRight: scale(5) }}
-                      width={scale(17)}
-                      height={verticalScale(17)}
-                      fill={'#fff'}
+                      width={scale(20)}
+                      height={verticalScale(20)}
+                      fill={'#FFD700'}
                     />
-                    <Text style={styles.online}>
+                    <Text style={[styles.online, {fontSize: scale(16), fontWeight: 'bold'}]}>
                       {props.online ?? 50}
-                      <Text style={styles.subOnline}>
-                        {' '}
-                        / {props.slot ?? 100}
+                      <Text style={[styles.subOnline, {fontSize: scale(14)}]}>
+                        {` / ${props.slot ?? 100}`}
                       </Text>
                     </Text>
                   </>
                 )}
                 {!props.loading && !props.status && (
-                  <Text style={styles.online}>Недоступно</Text>
+                  <Text style={styles.online}>Không có sẵn</Text>
                 )}
               </View>
+              <Text style={{ color: '#AAA', marginTop: verticalScale(5), fontSize: scale(14), fontWeight: 'bold' }}>
+                  Map: Los Santos
+              </Text>
             </View>
           </View>
         </LinearGradient>

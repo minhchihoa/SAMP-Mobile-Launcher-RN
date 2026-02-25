@@ -1,6 +1,6 @@
 import { setAlertNeedSpace } from '../actions/alertActions';
 import { formatSizeUnits } from '../helpers';
-import { selectBytes, selectFreeSpace } from '../selectors/loaderSelectors';
+import { selectCompare } from '../selectors/loaderSelectors';
 import { useAppDispatch } from './useAppDispatch';
 import { useAppSelector } from './useAppSelector';
 
@@ -8,19 +8,13 @@ export const useSpaceDownlload = (): {
   fetchSpace: () => boolean;
 } => {
   const dispatch = useAppDispatch();
-  const loader = useAppSelector(selectBytes);
-  const freeSpace = useAppSelector(selectFreeSpace);
+  const { freeSpace, needDownloadsCacheBytes } = useAppSelector(selectCompare);
 
   const fetchSpace = () => {
-    if (
-      freeSpace <
-      loader.distributionCacheBytes - loader.downloadsCacheBytes
-    ) {
+    if (freeSpace < needDownloadsCacheBytes) {
       dispatch(
         setAlertNeedSpace(true, {
-          needSpace: +formatSizeUnits(
-            loader.distributionCacheBytes - loader.downloadsCacheBytes,
-          ),
+          needSpace: +formatSizeUnits(needDownloadsCacheBytes),
           currentSpace: +formatSizeUnits(freeSpace),
         }),
       );

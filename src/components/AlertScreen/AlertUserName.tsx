@@ -13,7 +13,7 @@ export const AlertUserName = React.memo(() => {
 
   const onPressCancel = useCallback(async () => {
     dispatch(setAlertUserName(false));
-    return navigation.jumpTo('Настройки');
+    return navigation.jumpTo('Cài đặt'); // Reverted to original screen name
   }, []);
 
   const onConfirmPressed = useCallback(() => {
@@ -23,15 +23,15 @@ export const AlertUserName = React.memo(() => {
   return (
     <AlertLauncher
       show={show}
-      title="Подсказка"
+      title="Gợi ý"
       useNativeDriver={true}
       closeOnTouchOutside={false}
       closeOnHardwareBackPress={false}
-      message="Необходимо установить Имя_Фамилию в настройках"
+      message="Bạn cần đặt tên tài khoản trong phần cài đặt"
       showConfirmButton={true}
-      confirmText="Настройки"
+      confirmText="Cài đặt"
       showCancelButton={true}
-      cancelText="Закрыть"
+      cancelText="Đóng"
       onCancelPressed={onConfirmPressed}
       onConfirmPressed={onPressCancel}
     />

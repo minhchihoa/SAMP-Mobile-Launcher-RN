@@ -1,4 +1,4 @@
-import { LINK_DISCORD, LINK_SITE, LINK_TIKTOK, LINK_VK } from '@env';
+import { LINK_DISCORD, LINK_SITE, LINK_TIKTOK, LINK_FACEBOOK } from '@env';
 import React, { useCallback } from 'react';
 import { Image, Linking, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -6,23 +6,23 @@ import {
   discordLinkIcon,
   logoLinkIcon,
   tiktokLinkIcon,
-  vkLinkIcon,
+  fbLinkIcon,
 } from './../../assets/icons';
 import { styles } from './SocialStyle';
 
 export const socials = [
   {
-    title: 'Сайт',
+    title: 'Trang web',
     link: LINK_SITE,
     icon: logoLinkIcon,
   },
   {
-    title: 'VK',
-    link: LINK_VK,
-    icon: vkLinkIcon,
+    title: 'Facebook',
+    link: LINK_FACEBOOK,
+    icon: fbLinkIcon,
   },
   {
-    title: 'Discrod',
+    title: 'Discord',
     link: LINK_DISCORD,
     icon: discordLinkIcon,
   },
@@ -40,7 +40,7 @@ export const Social = React.memo(() => {
 
   return (
     <View style={styles.social}>
-      <Text style={styles.title}>Социальные сети</Text>
+      <Text style={styles.title}>Mạng xã hội</Text>
       <View style={styles.body}>
         {socials.map((el, key) => (
           <LinearGradient

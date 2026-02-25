@@ -45,12 +45,10 @@ export const LoaderContainer = React.memo((props: LoaderContainerType) => {
           </View>
           <View style={styles.footer}>
             <Text style={styles.description}>
-              <Text style={styles.accent}>Внимание!</Text> НЕ СВОРАЧИВАЙТЕ И НЕ
-              ЗАКРЫВАЙТЕ{'\n'}
-              ПРИЛОЖЕНИЕ ДО ЕГО ПОЛНОГО ЗАПУСКА{'\n'}
-              Если у Вас возникли проблемы, советуем{'\n'} обратиться в{' '}
+              <Text style={styles.accent}>Chú ý!</Text>
+              {' KHÔNG THU NHỎ HOẶC ĐÓNG ỨNG DỤNG\nCHO ĐẾN KHI NÓ KHỞI CHẠY HOÀN TOÀN\nNếu bạn gặp sự cố, chúng tôi khuyên bạn nên liên hệ '}
               <Text onPress={supportHandler} style={styles.link}>
-                Техническую поддержку
+                Hỗ trợ kỹ thuật
               </Text>
             </Text>
           </View>
@@ -58,7 +56,6 @@ export const LoaderContainer = React.memo((props: LoaderContainerType) => {
       </ImageBackground>
       {isSnow === 1 && (
         <Snow fullScreen snowflakesCount={100} fallSpeed="medium" />
-        // <Snow fullScreen snowflakesCount={100} fallSpeed="medium" />
       )}
     </View>
   );

@@ -8,6 +8,9 @@ import { AppThunk } from '../store/store';
 type SettingType = {
   client: {
     name: string;
+    host?: string;
+    ip?: string;
+    port?: number;
   };
   gui: {
     fps: number;
@@ -25,67 +28,125 @@ type SettingType = {
   };
 };
 
-const toPatch = FilePath.getPathDirSetting();
+const defaultSettings: SettingType = {
+  client: {
+    name: '', // Changed from 'NewPlayer' to empty string
+  },
+  gui: {
+    fps: 40,
+    ChatMaxMessages: 6,
+    fpscounter: 0,
+    androidKeyboard: 0,
+    graphic: 0,
+  },
+  server: {
+    serverid: -1,
+  },
+  launcher: {
+    localhost: 0,
+    skip: 0,
+  },
+};
+
+const settingsPath = FilePath.getPathDirSetting();
+const sampDirPath = settingsPath.substring(0, settingsPath.lastIndexOf('/'));
 
 export const fetchInitialSettings = (): AppThunk => async dispatch => {
   try {
-    const res = await RNFS.readFile(toPatch, 'utf8');
-    let resParse = parseINIString(res) as SettingType;
+    const dirExists = await RNFS.exists(sampDirPath);
+    if (!dirExists) {
+      await RNFS.mkdir(sampDirPath);
+    }
 
-    const name = resParse.client?.name ?? '';
-    const fps = resParse.gui?.fps ?? 40;
-    const chat = resParse.gui?.ChatMaxMessages ?? 6;
-    const fpscounter = resParse.gui?.fpscounter ?? 0;
-    const androidKeyboard = resParse.gui?.androidKeyboard ?? 0;
+    const fileExists = await RNFS.exists(settingsPath);
+    let settings: SettingType;
 
-    const serverid = resParse.server?.serverid ?? -1;
-    const graphic = resParse.gui?.graphic ?? 0;
-
-    const localhost = resParse.launcher?.localhost ?? 0;
-    const skip = resParse.launcher?.skip ?? 0;
+    if (fileExists) {
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      settings = parseINIString(res) as SettingType;
+    } else {
+      settings = defaultSettings;
+      await RNFS.writeFile(settingsPath, stringifyIni(settings), 'utf8');
+    }
 
     dispatch(
       setSettings({
-        userName: name,
-        fpsLimit: fps,
-        serverid: serverid,
-        pageSize: chat,
-        graphic: graphic,
-        fpscounter: fpscounter,
-        androidKeyboard: androidKeyboard,
-        localhost,
-        skip,
+        userName: settings.client?.name ?? defaultSettings.client.name,
+        fpsLimit: Number(settings.gui?.fps ?? defaultSettings.gui.fps),
+        serverid: Number(settings.server?.serverid ?? defaultSettings.server.serverid),
+        pageSize: Number(settings.gui?.ChatMaxMessages ?? defaultSettings.gui.ChatMaxMessages),
+        graphic: Number(settings.gui?.graphic ?? defaultSettings.gui.graphic),
+        fpscounter: Number(settings.gui?.fpscounter ?? defaultSettings.gui.fpscounter),
+        androidKeyboard: Number(settings.gui?.androidKeyboard ?? defaultSettings.gui.androidKeyboard),
+        localhost: Number(settings.launcher?.localhost ?? defaultSettings.launcher.localhost),
+        skip: Number(settings.launcher?.skip ?? defaultSettings.launcher.skip),
       }),
     );
-  } catch (errors) {}
+  } catch (errors) {
+    console.error("Error in fetchInitialSettings: ", errors);
+    // In case of error, dispatch default settings to avoid crash
+    dispatch(
+      setSettings({
+        userName: defaultSettings.client.name,
+        fpsLimit: defaultSettings.gui.fps,
+        serverid: defaultSettings.server.serverid,
+        pageSize: defaultSettings.gui.ChatMaxMessages,
+        graphic: defaultSettings.gui.graphic,
+        fpscounter: defaultSettings.gui.fpscounter,
+        androidKeyboard: defaultSettings.gui.androidKeyboard,
+        localhost: defaultSettings.launcher.localhost,
+        skip: defaultSettings.launcher.skip,
+      }),
+    );
+  }
 };
 
 export const fetchUserNameSetting =
   (userName: string): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as { client: { name: string } };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = {
         ...resParse,
         client: { ...resParse.client, name: userName },
       };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
+  };
+
+export const writeConnectionSettings =
+  (ip: string, port: number): AppThunk =>
+  async () => {
+    try {
+      console.log('[Settings] writeConnectionSettings start', { ip, port });
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
+
+      resParse = {
+        ...resParse,
+        client: { ...resParse.client, host: ip, ip, port },
+      };
+
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
+      console.log('[Settings] writeConnectionSettings done');
+    } catch (error) {
+      console.log('[Settings] Error writing connection settings: ', error);
+    }
   };
 
 export const fetchFpsSetting =
   (value: number): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as { gui: { fps: number } };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = { ...resParse, gui: { ...resParse.gui, fps: value } };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
   };
 
@@ -93,17 +154,15 @@ export const fetchPageSizeSetting =
   (value: number): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as {
-        gui: { ChatMaxMessages: number };
-      };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = {
         ...resParse,
         gui: { ...resParse.gui, ChatMaxMessages: value },
       };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
   };
 
@@ -111,15 +170,15 @@ export const fetchGraphicSetting =
   (value: number): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as { gui: { graphic: number } };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = {
         ...resParse,
-        gui: { ...resParse.gui, graphic: value ? 1 : 0 },
+        gui: { ...resParse.gui, graphic: value },
       };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
   };
 
@@ -127,49 +186,48 @@ export const fetchFPSSetting =
   (value: boolean): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as { gui: { fpscounter: number } };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = {
         ...resParse,
         gui: { ...resParse.gui, fpscounter: value ? 1 : 0 },
       };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
   };
 
-export const fetchKeyboardSetting =
-  (value: boolean): AppThunk =>
-  async () => {
-    try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as {
-        gui: { androidKeyboard: number };
-      };
-
-      resParse = {
-        ...resParse,
-        gui: { ...resParse.gui, androidKeyboard: value ? 1 : 0 },
-      };
-
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
-    } catch (error) {}
-  };
+export const fetchKeyboardSetting = (value: boolean): AppThunk => async dispatch => {
+  try {
+    const fileExists = await RNFS.exists(settingsPath);
+    let settings: SettingType;
+    if (fileExists) {
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      settings = parseINIString(res) as SettingType;
+    } else {
+      settings = defaultSettings;
+    }
+    settings.gui.androidKeyboard = value ? 1 : 0;
+    await RNFS.writeFile(settingsPath, stringifyIni(settings), 'utf8');
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 export const fetchServerIdSetting =
   (value: number): AppThunk =>
   async () => {
     try {
-      const res = await RNFS.readFile(toPatch, 'utf8');
-      let resParse = parseINIString(res) as { server: { serverid: number } };
+      const res = await RNFS.readFile(settingsPath, 'utf8');
+      let resParse = parseINIString(res) as SettingType;
 
       resParse = {
         ...resParse,
         server: { ...resParse.server, serverid: value ? 1 : 0 },
       };
 
-      await RNFS.writeFile(toPatch, stringifyIni(resParse), 'utf8');
+      await RNFS.writeFile(settingsPath, stringifyIni(resParse), 'utf8');
     } catch (error) {}
   };
 

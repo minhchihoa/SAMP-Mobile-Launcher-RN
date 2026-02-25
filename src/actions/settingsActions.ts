@@ -76,11 +76,11 @@ type SetModeTypeActionType = ReturnType<typeof setModeType>;
 
 export type SettingActionsType =
   | setUserNameSettingActionType
-  | SetSettingActionType
   | SetSettingServerActionType
+  | SetSettingActionType
   | SetSettingFPSActionType
   | SetSettingPageSizeActionType
   | SetSettingGraphicActionType
   | SetSettingFpsCounterActionType
-  | SetModeTypeActionType
-  | SetSettingKeyboardActionType;
+  | SetSettingKeyboardActionType
+  | SetModeTypeActionType;

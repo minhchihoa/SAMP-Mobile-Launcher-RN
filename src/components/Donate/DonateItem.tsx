@@ -8,19 +8,19 @@ import { styles } from './DonateItemStyle';
 
 const exclusives = [
   {
-    msg: 'Популярно',
+    msg: 'Phổ biến',
     style: 'badge-success',
   },
   {
-    msg: 'Акция',
+    msg: 'Khuyến mãi',
     style: 'badge-danger',
   },
   {
-    msg: 'Эксклюзив',
+    msg: 'Độc quyền',
     style: 'badge-info',
   },
   {
-    msg: 'Супер акция',
+    msg: 'Siêu khuyến mãi',
     style: 'badge-info',
   },
 ];
@@ -74,10 +74,10 @@ export const DonateItem = React.memo((props: DonateItemType) => {
           <TouchableOpacity style={{ width: '100%' }} onPress={donateHandler}>
             {price_scont ? (
               <Text style={styles.price}>
-                {price_scont}₽ <Text style={styles.scont}>{price}₽</Text>
+                {price_scont}đ <Text style={styles.scont}>{price}đ</Text>
               </Text>
             ) : (
-              <Text style={styles.price}>{price} ₽</Text>
+              <Text style={styles.price}>{price} đ</Text>
             )}
           </TouchableOpacity>
         </View>

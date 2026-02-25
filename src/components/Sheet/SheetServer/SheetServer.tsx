@@ -1,5 +1,6 @@
 import { BottomSheetModal, useBottomSheetModal } from '@gorhom/bottom-sheet';
-import Lottie from 'lottie-react-native';
+import { StackActions } from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { setAlertUserName } from '../../../actions/alertActions';
@@ -8,10 +9,13 @@ import { getRndInteger } from '../../../helpers';
 import { verticalScale } from '../../../helpers/demensions';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { useAppSelector } from '../../../hooks/useAppSelector';
+import { navigationRef } from '../../../routers/RootNavigation';
 import { selectSelectedServer } from '../../../selectors/appSelectors';
 import { selectProjectName } from '../../../selectors/distributionSelectors';
+import { selectRejectCount } from '../../../selectors/loaderSelectors';
 import { selectServer } from '../../../selectors/serverSelectors';
 import { selectUserName } from '../../../selectors/settingSelectors';
+import { writeConnectionSettings } from '../../../thunks/settingsThunks'; // Import the new thunk
 import { ButtonLauncher } from '../../ButtonLauncher/ButtonLauncher';
 import { Event } from '../../Event/Event';
 import DetachedContent from '../../Provider/Detached/DetachedContent';
@@ -36,19 +40,51 @@ export const SheetServerComponent = React.memo(
     const projectName = useAppSelector(selectProjectName);
     const selectedServer = useAppSelector(selectSelectedServer);
     const server = useAppSelector(state => selectServer(state, selectedServer));
+    const rejectCount = useAppSelector(selectRejectCount);
 
     const dispatch = useAppDispatch();
     const { dismissAll } = useBottomSheetModal();
 
     const onPressPlayHandler = useCallback(async () => {
-      if (userName.length < 1) {
-        dispatch(setAlertUserName(true));
-      } else {
-        await GtaSetupModule.startGame();
+      console.log('[Connect] Pressed', {
+        userNameLength: userName.length,
+        hasServer: Boolean(server),
+        serverName: server?.name,
+        serverAddress: server?.address,
+        rejectCount
+      });
+
+      if (rejectCount > 0) {
+        console.log('[Connect] Missing files detected. Redirecting to download...');
+        dismissAll();
+        return navigationRef.current?.dispatch(StackActions.replace('DownloadStartScreen'));
       }
 
-      dismissAll();
-    }, [userName]);
+      try {
+        if (userName.length < 1) {
+          console.log('[Connect] Empty username -> show alert');
+          dispatch(setAlertUserName(true));
+        } else {
+          if (server) {
+            const [ip, port] = server.address.split(':');
+            console.log('[Connect] Writing connection settings', { ip, port });
+            await dispatch(writeConnectionSettings(ip, Number(port)));
+          } else {
+            console.log('[Connect] No server selected');
+          }
+
+          const hasStartGame = Boolean(GtaSetupModule?.startGame);
+          console.log('[Connect] Calling startGame', { hasStartGame });
+          await GtaSetupModule.startGame();
+          console.log('[Connect] startGame resolved');
+        }
+      } catch (error) {
+        console.error('[Connect] Crash while starting game', error);
+      } finally {
+        console.log('[Connect] Dismiss sheet');
+        dismissAll();
+      }
+    }, [userName, server, dispatch, dismissAll]);
 
     return (
       <DetachedContent
@@ -58,11 +94,11 @@ export const SheetServerComponent = React.memo(
         <View style={styles.sheet}>
           <View style={styles.header}>
             <View style={styles.headerAnims}>
-              <Lottie
-                style={styles.headerAnim}
-                source={AnimsList[selectedServer]}
+              <LottieView
+                source={AnimsList[server?.id] ?? Anims.Rocket}
                 autoPlay
                 loop
+                style={styles.headerAnim}
               />
             </View>
             <View style={styles.headerText}>
@@ -98,20 +134,19 @@ export const SheetServerComponent = React.memo(
                 <Text style={styles.onlineText}>
                   {server?.online ?? 40}
                   <Text style={styles.onlineTextPeople}>
-                    {' '}
-                    / {server?.slot ?? 100}
+                    {` / ${server?.slot ?? 100}`}
                   </Text>
                 </Text>
               </>
             )}
             {!server?.loading && !server?.status && (
               <Text style={styles.onlineText}>
-                <Text style={styles.online}>Недоступно</Text>
+                <Text style={styles.online}>Không có sẵn</Text>
               </Text>
             )}
           </View>
           <View style={styles.event}>
-            <Text style={styles.eventTitle}>События сервера:</Text>
+            <Text style={styles.eventTitle}>Sự kiện máy chủ:</Text>
             <View style={styles.eventContent}>
               {server?.events &&
                 server?.events.map(el => (
@@ -121,7 +156,7 @@ export const SheetServerComponent = React.memo(
                 ))}
 
               {!server?.events?.length && (
-                <Event color={'light'}>Нет активных событий</Event>
+                <Event color={'light'}>Không có sự kiện nào</Event>
               )}
             </View>
           </View>
@@ -131,7 +166,7 @@ export const SheetServerComponent = React.memo(
               onPress={onPressPlayHandler}
               IconRight={PlaySvg}
               btnWidth={'100%'}>
-              Подключиться
+              Kết nối
             </ButtonLauncher>
           </View>
         </View>

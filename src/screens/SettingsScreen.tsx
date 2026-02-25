@@ -1,6 +1,6 @@
 import { APP_VERSION } from '@env';
 import React, { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View, NativeSyntheticEvent, TextInputEndEditingEventData } from 'react-native';
 import { setAlertUpdatingMode } from '../actions/alertActions';
 import {
   setSettingFps,
@@ -16,7 +16,7 @@ import { InputLauncher } from '../components/InputLauncher/InputLauncher';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
 import { selectModeType, selectSettings } from '../selectors/settingSelectors';
-import { nameFileRecursion } from '../thunks/loaderThunks';
+import { fetchInitialApp } from '../thunks/appThunks'; // Import fetchInitialApp
 import {
   fetchFPSSetting,
   fetchFpsSetting,
@@ -28,15 +28,20 @@ import {
 } from '../thunks/settingsThunks';
 import * as Icons from './../assets/svg';
 import { styles } from './../styles/SettingsStyle';
+import { StackActions, useNavigation } from '@react-navigation/native';
+import { navigationRef } from '../routers/RootNavigation';
+import { setInitial } from '../actions/appActions';
 
 export const SettingsScreen = React.memo(() => {
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
   const settings = useAppSelector(selectSettings);
   const settingMode = useAppSelector(selectModeType);
   const dispatch = useAppDispatch();
 
-  const onEndEditingUserName = React.useCallback((value: string) => {
+  const onEndEditingUserName = React.useCallback((e: NativeSyntheticEvent<TextInputEndEditingEventData>) => {
+    const value = e.nativeEvent.text;
     dispatch(fetchUserNameSetting(value));
     dispatch(setUserNameSetting({ userName: value }));
   }, []);
@@ -59,21 +64,19 @@ export const SettingsScreen = React.memo(() => {
 
   const onValueChangeSnow = React.useCallback(async (value: boolean) => {
     setIsLoading(true);
-
-    try {
-      const res = await dispatch(nameFileRecursion());
-      if (res) {
-        dispatch(setAlertUpdatingMode(true));
-      }
-    } catch (e) {}
-    dispatch(fetchModeSetting(value ? 1 : 0));
-
+    await dispatch(fetchModeSetting(value ? 1 : 0));
+    // Reset and re-check everything
+    dispatch(setInitial({ initial: false }));
+    navigationRef.current?.dispatch(StackActions.replace('Initiation'));
     setIsLoading(false);
   }, []);
 
-  const onValueChangeGraphic = React.useCallback((value: boolean) => {
-    dispatch(setSettingGraphic({ graphic: value ? 1 : 0 }));
-    dispatch(fetchGraphicSetting(value ? 1 : 0));
+  const onValueChangeGraphic = React.useCallback((value: number) => {
+    dispatch(setSettingGraphic({ graphic: Math.floor(value) }));
+  }, []);
+
+  const onSlidingCompleteGraphic = React.useCallback((value: number) => {
+    dispatch(fetchGraphicSetting(Math.floor(value)));
   }, []);
 
   const onValueChangeFPS = React.useCallback((value: boolean) => {
@@ -96,65 +99,89 @@ export const SettingsScreen = React.memo(() => {
       <MainContainer>
         <View style={styles.settingWrapper}>
           <View style={styles.setting}>
-            <Text style={styles.title}>Настройки</Text>
+            <Text style={styles.title}>Cài đặt</Text>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 50 }}>
+                <View style={styles.body}>
+                  <View>
+                    <InputLauncher
+                      value={settings.userName}
+                      onEndEditing={onEndEditingUserName}
+                      onChangeText={(text) => dispatch(setUserNameSetting({ userName: text }))}
+                      placeholder="Nhập tên người chơi"
+                    />
+                  </View>
+
+                  <View style={styles.switch}>
+                    <SwitchLauncher
+                      title="Chế độ tuyết rơi"
+                      value={settingMode}
+                      onValueChange={onValueChangeSnow}
+                    />
+                    <SwitchLauncher
+                      title="Bộ đếm FPS"
+                      value={settings.fpscounter}
+                      onValueChange={onValueChangeFPS}
+                    />
+                    <SwitchLauncher
+                      title="Bàn phím Android"
+                      value={settings.androidKeyboard}
+                      onValueChange={onValueChangeKeyboard}
+                    />
+                  </View>
+
+                  <View style={styles.range}>
+                    <Text style={styles.sectionTitle}>
+                      Chất lượng đồ họa
+                    </Text>
+                    
+                    <View style={styles.graphicContainer}>
+                      {[0, 1, 2].map((level) => (
+                        <TouchableOpacity
+                          key={level}
+                          style={[
+                            styles.btnOption,
+                            settings.graphic === level && styles.btnOptionActive
+                          ]}
+                          onPress={() => {
+                            onValueChangeGraphic(level);
+                            onSlidingCompleteGraphic(level);
+                          }}
+                        >
+                          <Text style={[
+                            styles.btnText,
+                            settings.graphic === level && styles.btnTextActive
+                          ]}>
+                            {level === 0 ? 'Thấp' : level === 1 ? 'Trung bình' : 'Cao'}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <RangeLauncher
+                      title="Giới hạn FPS"
+                      range={settings.fpsLimit}
+                      minimumValue={30}
+                      maximumValue={90}
+                      onValueChange={onValueChangeFps}
+                      onSlidingComplete={onSlidingCompleteFps}
+                    />
+                    <RangeLauncher
+                      title="Số dòng chat"
+                      range={settings.pageSize}
+                      minimumValue={1}
+                      maximumValue={20}
+                      onValueChange={onValueChangePageSize}
+                      onSlidingComplete={onSlidingCompletePageSize}
+                    />
+                  </View>
+                </View>
+                <Text style={styles.version}>Phiên bản: {APP_VERSION}</Text>
+              </ScrollView>
           </View>
-          <ScrollView>
-            <View style={styles.body}>
-              <View>
-                <InputLauncher
-                  Icon={Icons.UnionSvg}
-                  title={'Ваш никнейм'}
-                  value={settings.userName}
-                  onChangeText={onEndEditingUserName}
-                  placeholder={'Пример: Don_Corleone'}
-                />
-              </View>
-              <View style={styles.switch}>
-                <SwitchLauncher
-                  onValueChange={onValueChangeSnow}
-                  value={+settingMode}
-                  title={'Зимняя карта'}
-                />
-                <SwitchLauncher
-                  onValueChange={onValueChangeGraphic}
-                  value={+settings.graphic}
-                  title={'Улучшенная графика'}
-                />
-                <SwitchLauncher
-                  onValueChange={onValueChangeFPS}
-                  value={+settings.fpscounter}
-                  title={'Счётчик FPS'}
-                />
-                <SwitchLauncher
-                  onValueChange={onValueChangeKeyboard}
-                  value={+settings.androidKeyboard}
-                  title={'Android Keyboard'}
-                />
-              </View>
-              <View style={styles.range}>
-                <RangeLauncher
-                  title={'FPS в игре'}
-                  minimumValue={20}
-                  maximumValue={60}
-                  range={settings.fpsLimit}
-                  onValueChange={onValueChangeFps}
-                  onSlidingComplete={onSlidingCompleteFps}
-                />
-                <RangeLauncher
-                  title={'Количество строк в чате'}
-                  minimumValue={5}
-                  maximumValue={20}
-                  range={settings.pageSize}
-                  onValueChange={onValueChangePageSize}
-                  onSlidingComplete={onSlidingCompletePageSize}
-                />
-              </View>
-            </View>
-          </ScrollView>
-          <Text style={styles.version}>Версия {APP_VERSION}</Text>
         </View>
       </MainContainer>
-      <AlertUpdateMode />
     </>
   );
 });

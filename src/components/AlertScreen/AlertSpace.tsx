@@ -26,13 +26,13 @@ export const AlertSpace = React.memo(() => {
   return (
     <AlertLauncher
       show={show}
-      title="Недостаточно места"
+      title="Không đủ dung lượng"
       useNativeDriver={true}
       closeOnTouchOutside={false}
       closeOnHardwareBackPress={false}
-      message={`Для установки ресурсов игры, требуется ${needSpace} доступно ${currentSpace}`}
+      message={`Để cài đặt tài nguyên game, cần ${needSpace} nhưng chỉ có ${currentSpace}`}
       showCancelButton={true}
-      cancelText="Закрыть"
+      cancelText="Đóng"
       onCancelPressed={onPressCancel}
     />
   );

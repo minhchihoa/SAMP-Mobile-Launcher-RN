@@ -1,10 +1,9 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Text, View } from 'react-native';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { selectServers } from '../../selectors/serverSelectors';
 import { selectSettingLocalhost } from '../../selectors/settingSelectors';
-import { MonitoringEmpty } from './MonitoringEmpty';
 import { MonitoringItem } from './MonitoringItem';
 import { styles } from './MonitoringStyle';
 
@@ -15,20 +14,13 @@ export const MonitoringComponent = React.memo(
     const servers = useAppSelector(selectServers);
     const localhost = useAppSelector(selectSettingLocalhost);
 
-    const countServer = useMemo(() => {
-      return servers.filter(el => el.show && !localhost).length === 1;
-    }, [servers]);
-
     return (
       <View style={styles.monitoring}>
-        <Text style={styles.title}>Выбор сервера</Text>
+        <Text style={styles.title}>CỘNG ĐỒNG GTASAN.VN</Text>
         <View style={styles.monitorings}>
-          {servers.map(el => {
-            return el.show || localhost ? (
-              <MonitoringItem key={el.id} {...el} detachedServerRef={ref} />
-            ) : null;
-          })}
-          {countServer && <MonitoringEmpty />}
+          {servers.length > 0 && (
+             <MonitoringItem key={servers[0].id} {...servers[0]} detachedServerRef={ref} />
+          )}
         </View>
       </View>
     );

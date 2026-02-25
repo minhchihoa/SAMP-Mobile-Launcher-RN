@@ -82,97 +82,104 @@ export const compareFileRecursion =
   };
 
 export const fetchStartDownload = (): AppThunk => async (dispatch, state) => {
-  const { cdnCache } = state().distribution;
-  const { rejectCount } = state().loader.compare;
-  const { needDownload } = state().loader;
-  const modeType = state().settings.modeType;
+    const { cdnCache } = state().distribution;
+    const { rejectCount, downloadsCacheBytes: initialDownloadedBytes } = state().loader.compare;
+    const { needDownload } = state().loader;
+    const modeType = state().settings.modeType;
 
-  let numberOfDownloads = 0;
-  let downloadBytes = 0;
+    let numberOfDownloads = 0;
+    let totalDownloadedBytes = initialDownloadedBytes; // Start with already downloaded bytes
 
-  dispatch(createPushNotificationLoader());
+    dispatch(createPushNotificationLoader());
 
-  dispatch(
-    onUploadTaskEventLoader({
-      status: 'download',
-      sizeFile: 0,
-      currentFile: rejectCount,
-      size: 0,
-      current: rejectCount,
-      file: '',
-    }),
-  );
-
-  for await (const cache of needDownload) {
-    const { id, path: toFile, name: toName, bytes } = cache;
-    const bytesValid = bytes.length > 1 ? bytes[modeType] : bytes[0];
-    const urlValid =
-      bytes.length > 1 && modeType > 0 ? cdnCache + '_snow' : cdnCache;
-
-    try {
-      dispatch(
-        setDownloadLoader({
-          download: {
-            fileName: toName,
-            currentBytes: 0,
-            needBytes: bytesValid,
-            numberOfDownloads,
-            downloadBytes,
-          },
-        }),
-      );
-
-      const res = await FileDownload.download({
-        fromUrl: `${urlValid}/${toFile}/${toName}`,
-        toFile,
-        toName,
-        progress: ({ bytesWritten }: DownloadProgressType) => {
-          dispatch(
-            setDownloadLoader({
-              download: {
-                currentBytes: bytesWritten,
-                downloadBytes: downloadBytes + bytesWritten,
-              },
-            }),
-          );
-        },
-      });
-
-      if (res.statusCode === 200) {
-        numberOfDownloads++;
-        downloadBytes += bytesValid;
-
-        dispatch(
-          onUploadTaskEventLoader({
+    dispatch(
+        onUploadTaskEventLoader({
             status: 'download',
-            sizeFile: numberOfDownloads,
+            sizeFile: 0,
             currentFile: rejectCount,
-            size: numberOfDownloads,
+            size: 0,
             current: rejectCount,
-            file: toName,
-          }),
-        );
+            file: '',
+        }),
+    );
 
-        dispatch(
-          setDownloadLoader({
-            download: {
-              numberOfDownloads: numberOfDownloads,
-              downloadBytes: downloadBytes,
-            },
-          }),
-        );
-        dispatch(setCacheReject(id));
-      }
-    } catch (error) {
-      dispatch(onUploadTaskEventLoader({ status: 'complete' }));
-      return navigationRef.current?.dispatch(StackActions.replace('Error'));
+    for await (const cache of needDownload) {
+        const { id, path: toFile, name: toName, bytes } = cache;
+        const bytesValid = bytes.length > 1 ? bytes[modeType] : bytes[0];
+        const urlValid = bytes.length > 1 && modeType > 0 ? cdnCache + '_snow' : cdnCache;
+
+        const fileInitialDownloadedBytes = totalDownloadedBytes;
+
+        try {
+            dispatch(
+                setDownloadLoader({
+                    download: {
+                        fileName: toName,
+                        currentBytes: 0,
+                        needBytes: bytesValid,
+                        numberOfDownloads,
+                        downloadBytes: totalDownloadedBytes, // Dispatch total progress
+                    },
+                }),
+            );
+
+            const res = await FileDownload.download({
+                fromUrl: `${urlValid}/${toFile}/${toName}`,
+                toFile,
+                toName,
+                progress: ({ bytesWritten }: DownloadProgressType) => {
+                    dispatch(
+                        setDownloadLoader({
+                            download: {
+                                currentBytes: bytesWritten,
+                                // Update total progress correctly
+                                downloadBytes: fileInitialDownloadedBytes + bytesWritten,
+                            },
+                        }),
+                    );
+                },
+            });
+
+            if (res.statusCode === 200) {
+                numberOfDownloads++;
+                totalDownloadedBytes += bytesValid; // Update total after successful download
+
+                dispatch(
+                    onUploadTaskEventLoader({
+                        status: 'download',
+                        sizeFile: numberOfDownloads,
+                        currentFile: rejectCount,
+                        size: numberOfDownloads,
+                        current: rejectCount,
+                        file: toName,
+                    }),
+                );
+
+                dispatch(
+                    setDownloadLoader({
+                        download: {
+                            numberOfDownloads: numberOfDownloads,
+                            downloadBytes: totalDownloadedBytes,
+                        },
+                    }),
+                );
+                dispatch(setCacheReject(id));
+            } else {
+                 // Handle non-200 status codes as errors
+                 throw new Error(`Server responded with status ${res.statusCode}`);
+            }
+        } catch (error) {
+            console.error("Download failed for:", toName, error);
+            dispatch(onUploadTaskEventLoader({ status: 'complete' }));
+            return navigationRef.current?.dispatch(StackActions.replace('Error'));
+        }
     }
-  }
 
-  dispatch(onUploadTaskEventLoader({ status: 'complete' }));
-  dispatch(fetchIsDownloadSuccess());
-  return navigationRef.current?.dispatch(StackActions.replace('Main'));
+    dispatch(onUploadTaskEventLoader({ status: 'complete' }));
+    dispatch(fetchIsDownloadSuccess());
+    return navigationRef.current?.dispatch(StackActions.replace('Main'));
 };
+
 
 export const nameFileRecursion = (): AppThunk => async (dispatch, state) => {
   const cacheMode = state().distribution.cacheMode;

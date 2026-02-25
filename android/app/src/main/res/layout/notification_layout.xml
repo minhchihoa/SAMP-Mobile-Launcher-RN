@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:fontFamily="@font/muller_bold"
-                android:text="₽"
+                android:text="$"
                 android:textColor="#ffffffff"
                 android:textSize="16sp" />
         </FrameLayout>
@@ -62,7 +62,7 @@
                     android:fontFamily="@font/muller_regular"
                     android:lineSpacingMultiplier="0.85"
                     android:minWidth="40dp"
-                    android:text="Ошибка!"
+                    android:text="Lỗi!"
                     android:textColor="#ffffffff"
                     android:textSize="11sp" />
 
@@ -77,7 +77,7 @@
                     android:minHeight="30dp"
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
-                    android:text="Продолжить"
+                    android:text="Tiếp tục"
                     android:textAllCaps="false"
                     android:textColor="#ffffffff"
                     android:textSize="11sp" />

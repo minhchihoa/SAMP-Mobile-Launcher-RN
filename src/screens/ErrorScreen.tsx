@@ -22,19 +22,19 @@ export const ErrorScreen = React.memo(
     return (
       <LoaderContainer>
         <Text style={styles.title}>
-          Не удаётся подключиться{'\n'}
-          <Text>к ресурсам лаунчера</Text>
+          Không thể kết nối{'\n'}
+          <Text>đến tài nguyên của launcher</Text>
         </Text>
         <Text style={styles.alert}>
-          Проверьте интернет соединение на устройстве, или попробуйте зайти
-          позже.
+          Vui lòng kiểm tra kết nối internet trên thiết bị của bạn, hoặc thử lại
+          sau.
         </Text>
         <View style={styles.buttons}>
           <ButtonLauncher
             btnWidth={'100%'}
             background={'#5476db'}
             onPress={reloadHandler}>
-            Повторить попытку
+            Thử lại
           </ButtonLauncher>
         </View>
       </LoaderContainer>

@@ -1,38 +1,70 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Platform, PermissionsAndroid } from 'react-native';
 import { DownloadSvg } from '../../assets/svg/index';
 import { ButtonLauncher, LoaderContainer } from '../../components';
-import { usePermisionFile } from '../../hooks/usePermisionFile';
-import { useSpaceDownlload } from '../../hooks/useSpaceDownload';
+import { useAppDispatch } from '../../hooks/useAppDispatch';
+import { useAppSelector } from '../../hooks/useAppSelector';
 import { styles } from '../../styles/LoaderStyle';
+import { setAlertNeedSpace, setAlertProtectionFile } from '../../actions/alertActions';
+import { selectCompare, selectFreeSpace } from '../../selectors/loaderSelectors';
+import { formatSizeUnits } from '../../helpers';
 
 type InitiationScreenType = NativeStackScreenProps<any>;
 
 export const UpdateStartScreen = React.memo(
   ({ navigation }: InitiationScreenType) => {
-    const { fetchPermision } = usePermisionFile();
-    const { fetchSpace } = useSpaceDownlload();
+    const dispatch = useAppDispatch();
+    const { needDownloadsCacheBytes } = useAppSelector(selectCompare);
+    const freeSpace = useAppSelector(selectFreeSpace);
 
-    const onPressDownload = () => {
-      if (!fetchPermision()) {
-        return;
+    const onPressDownload = async () => {
+      try {
+        // 1. Permission Check
+        if (Platform.OS === 'android') {
+          // Android 13+ (API 33) does not require WRITE_EXTERNAL_STORAGE for app-specific directories
+          if (Platform.Version < 33) {
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+              {
+                title: 'Quyền truy cập bộ nhớ',
+                message: 'Ứng dụng cần quyền truy cập bộ nhớ để tải và lưu trữ dữ liệu game.',
+                buttonPositive: 'OK',
+                buttonNegative: 'Hủy',
+              },
+            );
+            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+              dispatch(setAlertProtectionFile(true));
+              return;
+            }
+          }
+        }
+
+        // 2. Space Check
+        if (freeSpace < needDownloadsCacheBytes) {
+          dispatch(
+            setAlertNeedSpace(true, {
+              needSpace: +formatSizeUnits(needDownloadsCacheBytes),
+              currentSpace: +formatSizeUnits(freeSpace),
+            }),
+          );
+          return;
+        }
+
+        // 3. Navigate
+        navigation.replace('UpdateScreen');
+      } catch (error) {
+        console.error('[FATAL_ERROR] An error occurred in UpdateStartScreen onPressDownload:', error);
       }
-
-      if (!fetchSpace()) {
-        return;
-      }
-
-      return navigation.replace('UpdateScreen');
     };
 
     return (
       <LoaderContainer>
-        <Text style={styles.title}>Доступно обновление!</Text>
+        <Text style={styles.title}>Có bản cập nhật!</Text>
         <Text style={styles.alert}>
-          Нажмите
-          <Text style={styles.accent}> обновить</Text>, чтобы подтвердить
-          {'\n'} загрузку файлов.
+          Nhấn
+          <Text style={styles.accent}> cập nhật</Text>, để xác nhận
+          {'\n'} tải xuống các tệp.
         </Text>
         <View style={styles.buttons}>
           <ButtonLauncher
@@ -40,7 +72,7 @@ export const UpdateStartScreen = React.memo(
             background={'#5476db'}
             IconLeft={DownloadSvg}
             onPress={onPressDownload}>
-            Обновить
+            Cập nhật
           </ButtonLauncher>
         </View>
       </LoaderContainer>

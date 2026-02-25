@@ -1,0 +1,138 @@
+[
+  {
+    "view_id": "hud_menu",
+    "image": "menu.png",
+    "enable": true
+  },
+  {
+    "view_id": "hud_inv",
+    "command": "/tuido",
+    "image": "inventory.png",
+    "enable": true
+  },
+  {
+    "view_id": "hud_donate",
+    "command": "/donate",
+    "image": "donate.png",
+    "enable": false
+  },
+  {
+    "view_id": "hud_menu3",
+    "command": "",
+    "image": "logo.png",
+    "enable": false
+  },
+  {
+    "view_id": "hud_weapon",
+    "command": "",
+    "image": "weapon_0.png",
+    "enable": true
+  },
+  {
+    "view_id": "speed_engine_ico",
+    "command": "/car engine",
+    "image": "speedo_engine.png",
+    "enable": true
+  },
+  {
+    "view_id": "speed_lock_ico",
+    "command": "/lock",
+    "image": "speedo_doors.png",
+    "enable": true
+  },
+  {
+    "menu_id": 398,
+    "command": "/map",
+    "title": "Bản đồ",
+    "image": "br_menu_compass.png",
+    "enable": true
+  },
+  {
+    "menu_id": 1,
+    "title": "gọi taxi",
+    "command": "/dichvu taxi",
+    "image": "br_menu_taxi.png",
+    "enable": true
+  },
+  {
+    "menu_id": 2,
+    "title": "Menu",
+    "command": "/mn",
+    "image": "br_menu_menu.png",
+    "enable": false
+  },
+  {
+    "menu_id": 3,
+    "title": "Giao tiếp",
+    "image": "br_menu_chat.png",
+    "enable": true
+  },
+  {
+    "menu_id": 4,
+    "title": "Túi đồ",
+    "image": "br_menu_bag.png",
+    "enable": true
+  },
+  {
+    "menu_id": 5,
+    "title": "Cử chỉ",
+    "image": "br_menu_anim.png",
+    "enable": true
+  },
+  {
+    "menu_id": 6,
+    "title": "Cửa hàng",
+    "image": "br_menu_ruble.png",
+    "enable": false
+  },
+  {
+    "menu_id": 14,
+    "title": "Donate",
+    "command": "/donate",
+    "image": "hud_donate.png",
+    "enable": false
+  },
+  {
+    "menu_id": 7,
+    "title": "Xe cộ",
+    "command": "/chinhxe",
+    "image": "br_menu_car.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 8,
+    "title": "Đưa hộ chiếu",
+    "image": "menu_passport.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 9,
+    "title": "Đưa hồ sơ bệnh án",
+    "image": "menu_med.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 10,
+    "title": "Đưa giấy phép",
+    "image": "menu_paper.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 11,
+    "title": "Đưa giấy tờ xe",
+    "image": "menu_lic.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 12,
+    "title": "Giao dịch",
+    "image": "menu_exchange.png",
+    "enable": true
+  },
+  {
+    "submenu_id": 13,
+    "title": "Quay lại",
+    "image": "menu_back.png",
+    "enable": true
+  }
+]

@@ -25,7 +25,7 @@ export const MonitoringEmpty = React.memo(() => {
           <View style={styles.info}>
             <Text style={styles.subtitle}>CRMP</Text>
             <View style={styles.static}>
-              <Text style={styles.online}>Coming soon</Text>
+              <Text style={styles.online}>Sắp ra mắt</Text>
             </View>
           </View>
         </View>

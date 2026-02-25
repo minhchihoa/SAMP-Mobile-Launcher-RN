@@ -1,4 +1,3 @@
-import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
 import { Dimensions, Text, View } from 'react-native';
@@ -8,76 +7,45 @@ import { LoaderContainer } from '../components';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 import { useAppSelector } from '../hooks/useAppSelector';
 import { selectInitial } from '../selectors/appSelectors';
-import {
-  selectIsSuccessDownload,
-  selectRejectCount,
-} from '../selectors/loaderSelectors';
 import { styles } from '../styles/LoaderStyle';
 import { fetchInitialApp } from '../thunks/appThunks';
-import { autoUpdateLauncher } from '../thunks/launcherTunks';
+
 const width = Dimensions.get('window').width;
 
 type InitiationScreenType = NativeStackScreenProps<any>;
 
-export const InitiationScreen = React.memo(
-  ({ navigation }: InitiationScreenType) => {
-    const dispatch = useAppDispatch();
-    const isInitial = useAppSelector(selectInitial);
-    const isSuccessDownload = useAppSelector(selectIsSuccessDownload);
-    const rejectCount = useAppSelector(selectRejectCount);
+// This screen is now only responsible for showing the loading indicator
+// and dispatching the initial app fetch. All navigation logic is handled inside the thunks.
+export const InitiationScreen = React.memo(() => {
+  const dispatch = useAppDispatch();
+  const isInitial = useAppSelector(selectInitial);
 
-    useEffect(() => {
-      dispatch(fetchInitialApp());
-    }, []);
+  useEffect(() => {
+    // Dispatch only once when the component mounts
+    dispatch(fetchInitialApp());
+  }, [dispatch]);
 
-    useEffect(() => {
-      if (isInitial) {
-        if (rejectCount) {
-          if (isSuccessDownload === false && rejectCount) {
-            return navigation.replace('DownloadStartScreen');
-          }
-
-          if (rejectCount) {
-            return navigation.replace('UpdateStartScreen');
-          }
-        }
-
-        dispatch(autoUpdateLauncher());
-      }
-    }, [isInitial, isSuccessDownload, rejectCount]);
-
-    useFocusEffect(
-      React.useCallback(() => {
-        if (isInitial) {
-          return navigation.replace('Main');
-        }
-
-        return () => {};
-      }, [isInitial]),
-    );
-
-    return (
-      <LoaderContainer>
-        <View style={styles.progress}>
-          <Text style={styles.starting}>ИДЕТ ЗАГРУЗКА ПРИЛОЖЕНИЯ...</Text>
-          <View style={styles.progressPercent}>
-            {!isInitial && (
-              <Progress.Bar
-                style={{ marginTop: 20 }}
-                animated={true}
-                useNativeDriver={true}
-                indeterminate={true}
-                borderWidth={0}
-                color={'#647fd3'}
-                unfilledColor={'#2f3545'}
-                borderRadius={20}
-                height={10}
-                width={width - verticalScale(40)}
-              />
-            )}
-          </View>
+  return (
+    <LoaderContainer>
+      <View style={styles.progress}>
+        <Text style={styles.starting}>ĐANG TẢI ỨNG DỤNG...</Text>
+        <View style={styles.progressPercent}>
+          {!isInitial && (
+            <Progress.Bar
+              style={{ marginTop: 20 }}
+              animated={true}
+              useNativeDriver={true}
+              indeterminate={true}
+              borderWidth={0}
+              color={'#647fd3'}
+              unfilledColor={'#2f3545'}
+              borderRadius={20}
+              height={10}
+              width={width - verticalScale(40)}
+            />
+          )}
         </View>
-      </LoaderContainer>
-    );
-  },
-);
+      </View>
+    </LoaderContainer>
+  );
+});

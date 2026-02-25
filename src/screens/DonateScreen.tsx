@@ -21,7 +21,7 @@ export const DonateScreen = React.memo(() => {
       <View style={styles.donate}>
         {donateMemo.length > 0 && (
           <FlatList
-            ListHeaderComponent={<Text style={styles.title}>Донат услуги</Text>}
+            ListHeaderComponent={<Text style={styles.title}>Dịch vụ quyên góp</Text>}
             contentContainerStyle={{ paddingBottom: verticalScale(20) }}
             data={donateMemo}
             numColumns={2}

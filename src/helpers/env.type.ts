@@ -1,6 +1,6 @@
 declare module '@env' {
   export const LINK_SITE: string;
-  export const LINK_VK: string;
+  export const LINK_FACEBOOK: string;
   export const LINK_DISCORD: string;
   export const LINK_TIKTOK: string;
   export const LINK_FORUM_HELP: string;

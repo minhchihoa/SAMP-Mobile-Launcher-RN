@@ -20,19 +20,19 @@ export const ModeScreen = React.memo(({ navigation }: InitiationScreenType) => {
 
   return (
     <LoaderContainer>
-      <Text style={styles.titleSub}>Выбор карты</Text>
+      <Text style={styles.titleSub}>Lựa chọn bản đồ</Text>
       <View style={styles.body}>
         <ModeItem
           id={0}
           onPress={onPress}
-          text="Стандартная карта"
+          text="Bản đồ tiêu chuẩn (Khuyến nghị)"
           image={Images.Default}
           color={['#a4956e99', '#f5422a60']}
         />
         <ModeItem
           id={1}
           onPress={onPress}
-          text="Зимняя карта"
+          text="Bản đồ mùa đông (Thử nghiệm)"
           image={Images.Snow}
           color={['#88effc99', '#6e2af560']}
         />

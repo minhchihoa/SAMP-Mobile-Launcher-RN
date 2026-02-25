@@ -13,6 +13,8 @@ export const styles = StyleSheet.create({
     paddingHorizontal: scale(15),
     borderRadius: scale(12),
     backgroundColor: 'rgba(194, 214, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: '#FFD700', // Gold border for highlight
   },
   title: {
     fontSize: scale(15),

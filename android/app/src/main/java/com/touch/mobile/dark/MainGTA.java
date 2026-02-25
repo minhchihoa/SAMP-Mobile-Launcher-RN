@@ -52,6 +52,37 @@ public class MainGTA extends WarMedia {
         self = this;
         wantsMultitouch = true;
         wantsAccelerometer = true;
+        
+        // Unlock High Refresh Rate (90Hz, 120Hz, etc.)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            try {
+                android.view.Display display = getWindowManager().getDefaultDisplay();
+                android.view.Display.Mode[] modes = display.getSupportedModes();
+                
+                // Find the mode with the highest refresh rate
+                android.view.Display.Mode bestMode = null;
+                for (android.view.Display.Mode mode : modes) {
+                    if (bestMode == null || mode.getRefreshRate() > bestMode.getRefreshRate()) {
+                        bestMode = mode;
+                    } else if (mode.getRefreshRate() == bestMode.getRefreshRate()) {
+                        // Prefer higher resolution if refresh rates are equal
+                        if (mode.getPhysicalWidth() > bestMode.getPhysicalWidth()) {
+                            bestMode = mode;
+                        }
+                    }
+                }
+                
+                if (bestMode != null) {
+                    android.view.WindowManager.LayoutParams params = getWindow().getAttributes();
+                    params.preferredDisplayModeId = bestMode.getModeId();
+                    getWindow().setAttributes(params);
+                    System.out.println("Set preferredDisplayModeId to " + bestMode.getModeId() + " (" + bestMode.getRefreshRate() + "Hz)");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         super.onCreate(bundle);
         Utils.currentContext = this;
     }

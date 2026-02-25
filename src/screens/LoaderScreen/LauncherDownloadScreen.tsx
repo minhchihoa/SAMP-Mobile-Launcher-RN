@@ -1,145 +1,78 @@
 import React, { useState } from 'react';
 import { Dimensions, Text, View } from 'react-native';
 import * as Progress from 'react-native-progress';
-import { ReloadSvg, downloadSvg } from '../../assets/svg/index';
+import { verticalScale } from 'react-native-size-matters';
+import { downloadSvg } from '../../assets/svg/index';
 import { ButtonLauncher, LoaderContainer } from '../../components';
-import { formatSizeUnits } from '../../helpers';
-import { verticalScale } from '../../helpers/demensions';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
-import { usePermisionFile } from '../../hooks/usePermisionFile';
-import { useSpaceDownlload } from '../../hooks/useSpaceDownload';
 import { selectLoaderDownload } from '../../selectors/loaderSelectors';
 import { styles } from '../../styles/LoaderStyle';
 import { updateLauncher } from '../../thunks/launcherTunks';
+
 const width = Dimensions.get('window').width;
 
 export const LauncherDownloadScreen = React.memo(() => {
-  const [isError, setIsError] = useState<boolean>(false);
-  const [isFetchDownload, setIsFetchDownload] = useState<boolean>(false);
-
-  const { fetchPermision } = usePermisionFile();
-  const { fetchSpace } = useSpaceDownlload();
-
-  const download = useAppSelector(selectLoaderDownload);
-  const currentBytes = download.currentBytes || 0;
-  const needBytes = download.needBytes || 0;
-
   const dispatch = useAppDispatch();
+  const download = useAppSelector(selectLoaderDownload);
+  const [isFetchDownload, setIsFetchDownload] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  const onPressUpdateHandler = React.useCallback(() => {
-    if (isError) {
-      setIsError(false);
-    }
-
-    if (!fetchPermision()) {
-      return;
-    }
-
-    if (!fetchSpace()) {
-      return;
-    }
-
-    if (!isFetchDownload) {
-      setIsFetchDownload(true);
-      dispatch(
-        updateLauncher({
-          setIsError: setIsError,
-          setIsFetchDownload: setIsFetchDownload,
-        }),
-      );
-    }
-  }, [isError, isFetchDownload]);
+  const onDownloadPress = () => {
+    setIsFetchDownload(true);
+    setIsError(false);
+    dispatch(updateLauncher({ setIsError, setIsFetchDownload }));
+  };
 
   return (
     <LoaderContainer>
       <Text style={[styles.title, styles.titleUppercase]}>
-        Новая версия лаунчера
+        Phiên bản launcher mới
+      </Text>
+      <Text style={styles.alert}>
+        Một phiên bản mới của launcher đã có sẵn. Vui lòng tải xuống và cài đặt bản cập nhật để tiếp tục.
       </Text>
 
-      <View style={styles.progress}>
-        {!isError && !isFetchDownload && (
-          <LauncherDownload onPressUpdateHandler={onPressUpdateHandler} />
-        )}
-        {!isError && isFetchDownload && (
-          <LauncherDownloadStart
-            currentBytes={currentBytes}
-            needBytes={needBytes}
-          />
-        )}
-        {isError && (
-          <LauncherDownloadError onPressUpdateHandler={onPressUpdateHandler} />
+      {isError && (
+        <Text style={[styles.alert, { color: '#ff4d4d' }]}>
+          Có lỗi xảy ra khi tải xuống. Vui lòng thử lại.
+        </Text>
+      )}
+
+      <View style={styles.buttons}>
+        {!isFetchDownload ? (
+          <ButtonLauncher
+            btnWidth={'100%'}
+            background={'#5476db'}
+            IconLeft={downloadSvg}
+            onPress={onDownloadPress}>
+            Tải xuống
+          </ButtonLauncher>
+        ) : (
+          <View style={styles.progress}>
+            <Text style={styles.progressTitle}>Đang tải xuống...</Text>
+            <Progress.Bar
+              animated={true}
+              useNativeDriver={true}
+              progress={
+                download.needBytes > 0
+                  ? download.currentBytes / download.needBytes
+                  : 0
+              }
+              borderWidth={0}
+              color={'#647fd3'}
+              unfilledColor={'#2f3545'}
+              borderRadius={20}
+              height={10}
+              width={width - verticalScale(40)}
+            />
+            <Text style={[styles.progressTitle, { marginTop: 10 }]}>
+              {(download.currentBytes / 1024 / 1024).toFixed(2)} MB /{' '}
+              {(download.needBytes / 1024 / 1024).toFixed(2)} MB
+            </Text>
+          </View>
         )}
       </View>
     </LoaderContainer>
   );
 });
-
-const LauncherDownload = (props: { onPressUpdateHandler: () => void }) => {
-  return (
-    <>
-      <Text style={styles.alert}>
-        Нажмите
-        <Text style={styles.accent}> загрузить</Text>, чтобы подтвердить
-        {'\n'} загрузку лаунчера.
-      </Text>
-      <View style={styles.buttons}>
-        <ButtonLauncher
-          btnWidth={'100%'}
-          background={'#5476db'}
-          IconLeft={downloadSvg}
-          onPress={props.onPressUpdateHandler}>
-          Загрузить
-        </ButtonLauncher>
-      </View>
-    </>
-  );
-};
-
-const LauncherDownloadError = (props: { onPressUpdateHandler: () => void }) => {
-  return (
-    <>
-      <Text style={styles.alert}>Произошла ошибка при загрузки</Text>
-      <View style={styles.buttons}>
-        <ButtonLauncher
-          background={'#5476db'}
-          btnWidth={'100%'}
-          IconLeft={ReloadSvg}
-          onPress={props.onPressUpdateHandler}>
-          Повтор
-        </ButtonLauncher>
-      </View>
-    </>
-  );
-};
-
-const LauncherDownloadStart = (props: {
-  currentBytes: number;
-  needBytes: number;
-}) => {
-  const loaders = Math.floor((props.currentBytes * 100) / props.needBytes);
-
-  return (
-    <>
-      <Text style={[styles.progressTitle, { textAlign: 'center' }]}>
-        <Text style={[styles.progressMemory]}>
-          [{formatSizeUnits(props.currentBytes)} из{' '}
-          {formatSizeUnits(props.needBytes)}]
-        </Text>
-      </Text>
-
-      <Progress.Bar
-        progress={loaders / 100 < 0.001 ? 0.0 : loaders / 100}
-        animated={true}
-        useNativeDriver={true}
-        borderWidth={0}
-        color={'#647fd3'}
-        unfilledColor={'#2f3545'}
-        borderRadius={20}
-        height={10}
-        width={width - verticalScale(40)}
-      />
-      <Text style={styles.progressPercent}>{loaders > 0 ? loaders : 0}%</Text>
-    </>
-  );
-};

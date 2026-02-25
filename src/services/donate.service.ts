@@ -3,9 +3,13 @@ import axios from 'axios';
 
 export const DonateService = {
   async get() {
-    return await axios
-      .get<DonateResponseType>(URL_DONATE_API)
-      .then(res => res.data);
+    try {
+      const response = await axios.get<DonateResponseType>(URL_DONATE_API);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching donates:', error);
+      return [[], []]; // Return empty arrays on error to prevent crashes
+    }
   },
 };
 

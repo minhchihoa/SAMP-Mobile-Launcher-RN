@@ -97,15 +97,12 @@ public class WarMedia extends WarGamepad
         return 0;
     }
 
-    public boolean IsPhone() // TODO: implement this
-    {
-        System.out.println("**** IsPhone");
+    public boolean IsPhone() {
         return true;
     }
 
     public int GetDeviceType() // TODO: implement this
     {
-
         int i = 0;
         System.out.println("Build info version device  " + Build.DEVICE);
         System.out.println("Build MANUFACTURER  " + Build.MANUFACTURER);
@@ -125,6 +122,7 @@ public class WarMedia extends WarGamepad
         }
         return i + i2 + numberOfProcessors + i3;
     }
+
 
     public int GetDeviceInfo(int i) // TODO: implement this
     {

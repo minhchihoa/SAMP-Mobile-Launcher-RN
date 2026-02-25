@@ -65,6 +65,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import android.util.DisplayMetrics;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -490,6 +494,7 @@ public abstract class NvEventQueueActivity
                     ret.data[bpos++] = (byte) ((p>>24)&0xff);
                 }
             }
+            bmp.recycle();
         }
         catch (Exception e)
         {
@@ -553,11 +558,84 @@ public abstract class NvEventQueueActivity
     public native void nvAcquireTimeExtension();
     public native long nvGetSystemTime();
 
-    @Override
+    private void unlockHighFPS() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                Display display = getWindowManager().getDefaultDisplay();
+                Display.Mode[] modes = display.getSupportedModes();
+                Display.Mode bestMode = null;
+                for (Display.Mode mode : modes) {
+                    if (bestMode == null || mode.getRefreshRate() > bestMode.getRefreshRate()) {
+                        bestMode = mode;
+                    } else if (mode.getRefreshRate() == bestMode.getRefreshRate()) {
+                        if (mode.getPhysicalWidth() > bestMode.getPhysicalWidth()) {
+                            bestMode = mode;
+                        }
+                    }
+                }
+                if (bestMode != null) {
+                    WindowManager.LayoutParams params = getWindow().getAttributes();
+                    params.preferredDisplayModeId = bestMode.getModeId();
+                    getWindow().setAttributes(params);
+                    System.out.println("Set preferredDisplayModeId to " + bestMode.getModeId() + " (" + bestMode.getRefreshRate() + "Hz)");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void applyGraphicsSettings() {
+        try {
+            File file = new File(getFilesDir(), "settings.ini");
+            if (!file.exists()) return;
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+            int graphic = 2; // Default High
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().startsWith("graphic")) {
+                    String[] parts = line.split("=");
+                    if (parts.length > 1) {
+                        try {
+                            graphic = Integer.parseInt(parts[1].trim());
+                        } catch (NumberFormatException e) {}
+                    }
+                }
+            }
+            br.close();
+
+            DisplayMetrics dm = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(dm);
+
+            int w = dm.widthPixels;
+            int h = dm.heightPixels;
+
+            if (graphic == 0) { // Low
+                 fixedWidth = w / 2;
+                 fixedHeight = h / 2;
+            } else if (graphic == 1) { // Medium
+                 fixedWidth = (int)(w * 0.75f);
+                 fixedHeight = (int)(h * 0.75f);
+            } else {
+                 fixedWidth = 0; // Native
+                 fixedHeight = 0;
+            }
+
+            System.out.println("Applied Graphics Settings: " + graphic + " -> " + fixedWidth + "x" + fixedHeight);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void onCreate(Bundle savedInstanceState)
     {
         System.out.println("**** onCreate");
         super.onCreate(savedInstanceState);
+        unlockHighFPS();
+        applyGraphicsSettings();
         instance = this;
         if(supportPauseResume)
         {
@@ -657,6 +735,7 @@ public abstract class NvEventQueueActivity
     {
         System.out.println("**** onResume");
         super.onResume();
+        unlockHighFPS();
         if(mSensorManager != null)
             mSensorManager.registerListener(
                     this,
@@ -1000,8 +1079,8 @@ public abstract class NvEventQueueActivity
                                      public void run()
                                      {
                                          new AlertDialog.Builder(act)
-                                                 .setMessage("Application initialization failed. The application will exit.")
-                                                 .setPositiveButton("Ok",
+                                                .setMessage("Khởi tạo ứng dụng thất bại. Ứng dụng sẽ thoát.")
+                                                .setPositiveButton("Đồng ý",
                                                          new DialogInterface.OnClickListener ()
                                                          {
                                                              public void onClick(DialogInterface i, int a)
@@ -1495,6 +1574,8 @@ public abstract class NvEventQueueActivity
     public native void sendDialogResponse(int i, int i2, int i3, byte[] str);
 
     public void updateHudInfo(int health, int armour, int hunger, int weaponid, int ammo, int ammoinclip, int money, int wanted, int checkX2, String name, int id) { runOnUiThread(() -> { mHudManager.UpdateHudInfo(health, armour, hunger, weaponid, ammo, ammoinclip, money, wanted, checkX2, name, id); }); }
+
+    public void setCredits(int credits) { runOnUiThread(() -> { mHudManager.setCredits(credits); }); }
 
     public void showHud() { runOnUiThread(() -> { mHudManager.ShowHud(); }); }
 
