@@ -63,5 +63,16 @@ buck-out/
 /ios/Pods/
 /vendor/bundle/
 
-/.vscode
-distribution/cache/texdb/
+# IDEs
+.vscode/
+.idea/
+
+# Build and distribution files
+distribution/
+android/app/build/
+ios/build/
+bin/
+gen/
+out/
+*.apk
+*.aab
