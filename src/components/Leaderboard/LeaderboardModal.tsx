@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
-import { BottomSheetModal, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { styles } from './LeaderboardStyle';
 import axios from 'axios';
 import { scale } from '../../helpers/demensions';
@@ -180,7 +180,7 @@ export const LeaderboardModal = React.forwardRef<BottomSheetModal, any>((props, 
       }
 
       return (
-          <View>
+          <View style={{ flex: 1 }}>
               <View style={[styles.row, styles.headerRow]}>
                   <Text style={[styles.rank, styles.headerText]}>#</Text>
                   <Text style={[styles.name, styles.headerText]}>Tên người chơi</Text>
@@ -188,17 +188,19 @@ export const LeaderboardModal = React.forwardRef<BottomSheetModal, any>((props, 
                       {type === 'level' ? 'Level' : type === 'money' ? 'Money' : 'Credits'}
                   </Text>
               </View>
-              {list.slice(0, 10).map((item, index) => (
-                  <View key={index} style={styles.row}>
-                      <Text style={styles.rank}>{index + 1}</Text>
-                      <Text style={styles.name}>{item.username || 'Unknown'}</Text>
-                      <Text style={styles.value}>
-                          {type === 'money' || type === 'priceooc' 
-                            ? parseInt(String(item.value || 0)).toLocaleString() + (type === 'money' ? '$' : '')
-                            : item.value}
-                      </Text>
-                  </View>
-              ))}
+              <BottomSheetScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 50 }}>
+                {list.map((item, index) => (
+                    <View key={index} style={styles.row}>
+                        <Text style={styles.rank}>{index + 1}</Text>
+                        <Text style={styles.name}>{item.username || 'Unknown'}</Text>
+                        <Text style={styles.value}>
+                            {type === 'money' || type === 'priceooc' 
+                                ? parseInt(String(item.value || 0)).toLocaleString() + (type === 'money' ? '$' : '')
+                                : item.value}
+                        </Text>
+                    </View>
+                ))}
+              </BottomSheetScrollView>
           </View>
       );
   };
@@ -207,7 +209,7 @@ export const LeaderboardModal = React.forwardRef<BottomSheetModal, any>((props, 
       <BottomSheetModal
         ref={ref}
         index={0}
-        snapPoints={snapPoints}
+        snapPoints={['80%']}
         backdropComponent={renderBackdrop}
         backgroundStyle={{ backgroundColor: '#1A1A1A' }}
         handleIndicatorStyle={{ backgroundColor: '#FFD700' }}
@@ -234,14 +236,15 @@ export const LeaderboardModal = React.forwardRef<BottomSheetModal, any>((props, 
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={handleScroll}
                 contentContainerStyle={{ width: (SCREEN_WIDTH - scale(40)) * 3 }}
+                style={{ flex: 1 }}
               >
-                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10 }}>
+                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10, flex: 1 }}>
                       {renderList('level')}
                   </View>
-                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10 }}>
+                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10, flex: 1 }}>
                       {renderList('money')}
                   </View>
-                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10 }}>
+                  <View style={{ width: SCREEN_WIDTH - scale(40), paddingRight: 10, flex: 1 }}>
                       {renderList('priceooc')}
                   </View>
               </ScrollView>

@@ -1,6 +1,6 @@
 {
   "name": "TouchMobile",
-  "version": "0.0.16",
+  "version": "0.0.140",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

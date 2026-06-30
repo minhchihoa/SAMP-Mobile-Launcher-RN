@@ -1,8 +1,0 @@
-- Tối ưu hóa HudManager: Cache DecimalFormat và SparseIntArray cho ID vũ khí để giảm tạo object liên tục gây crash.
-- Tối ưu hóa NvEventQueueActivity: Thêm bmp.recycle() để giải phóng bộ nhớ native sau khi load texture.
-- Khôi phục nút Alt và H: Đưa tọa độ nút Horn và Horn Alt về vị trí ban đầu trong tất cả file config (assets/data và cache/data) do yêu cầu revert.
-- Giới hạn FPS: Chỉnh slider FPS tối đa trong Cài đặt xuống 90 FPS.
-- Unlock 120Hz: Thêm logic trong MainGTA.java để tự động chọn tần số quét cao nhất (120Hz/144Hz) nếu thiết bị hỗ trợ.
-- Speedometer HUD: Ẩn đồng hồ tốc độ (gauge, kim, text) nhưng giữ lại nút Engine và Lock.
-- File Manager: Thêm tính năng "Copy Link" cho file.
-- Lệnh Engine: Xác nhận nút Engine trong command_buttons.json đã sử dụng lệnh '/car engine'.

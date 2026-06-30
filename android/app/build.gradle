@@ -221,14 +221,6 @@ android {
         }
     }
 
-    if (!isNewArchitectureEnabled()) {
-        externalNativeBuild {
-            cmake {
-                path "src/main/jni/CMakeLists_Security.txt"
-            }
-        }
-    }
-
     splits {
         abi {
             reset()

@@ -32,10 +32,6 @@ public class GtaSetupModule extends ReactContextBaseJavaModule {
                 return;
             }
 
-            // Inject security token into settings.ini
-            String settingsPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/SAMP/settings.ini";
-            SecurityUtils.injectTokenToSettings(context, settingsPath);
-
             Intent intent = new Intent(context, MainGTA.class);
             intent.putExtras(activity.getIntent());
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
